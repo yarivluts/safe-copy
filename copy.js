@@ -35,7 +35,7 @@ function sleep(ms) {
 function readSafeFile(source, cb = () => {}, finishCb = () => {}) {
   return new Promise(async (resolve, reject) => {
     var position = 0;
-    const STEP = 500;
+    const STEP = 5000;
     var data = "";
     var isReading = true;
     var hasError = false;
@@ -69,7 +69,7 @@ function readSafeFile(source, cb = () => {}, finishCb = () => {}) {
   });
 }
 
-function readFile(
+async function readFile(
   source,
   position,
   step,
@@ -78,6 +78,7 @@ function readFile(
   endCallback = () => {}
 ) {
   var position = 0;
+  var filesize = await getFileSize(source);
   // Use fs.createReadStream() method
   // to read the file
 
@@ -88,6 +89,8 @@ function readFile(
   // Read and disply the file data on console
   reader.on("data", function (chunk) {
     position += chunk.length;
+    let porcentage = ((position / filesize) * 100).toFixed(2);
+    console.log(source, " copy progress ", porcentage + "%"); // run once with this and later with this line commented
     // console.log('data&&',chunk.length,chunk)
     readCallback(chunk, position);
   });
@@ -102,6 +105,17 @@ function readFile(
   reader.on("end", async function () {
     await Promise.resolve(endCallback());
   });
+}
+
+async function getFileSize(path) {
+  try {
+    var stat = await fsPromise.stat(path);
+    return stat.size;
+  } catch (error) {
+    console.error("error fetch file size ", path);
+    sleep(1000);
+    return getFileSize(path);
+  }
 }
 
 function copyFile(source, target) {
@@ -166,6 +180,7 @@ async function copy(source, target) {
   for (var i = 0; i < copyMap.length; i++) {
     await copyFile(copyMap[i].from, copyMap[i].to);
   }
+  console.log("*** copy is finished ***");
 }
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
