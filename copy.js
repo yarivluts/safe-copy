@@ -35,7 +35,7 @@ function sleep(ms) {
 function readSafeFile(source, cb = () => {}, finishCb = () => {}) {
   return new Promise(async (resolve, reject) => {
     var position = 0;
-    const STEP = 5000;
+    const STEP = 20000;
     var data = "";
     var isReading = true;
     var hasError = false;
@@ -71,13 +71,12 @@ function readSafeFile(source, cb = () => {}, finishCb = () => {}) {
 
 async function readFile(
   source,
-  position,
+  position = 0,
   step,
   readCallback = () => {},
   errorCallback = () => {},
   endCallback = () => {}
-) {
-  var position = 0;
+) { 
   var filesize = await getFileSize(source);
   // Use fs.createReadStream() method
   // to read the file
