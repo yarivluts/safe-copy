@@ -35,7 +35,7 @@ function sleep(ms) {
 function readSafeFile(source, cb = () => {}, finishCb = () => {}) {
   return new Promise(async (resolve, reject) => {
     var position = 0;
-    const STEP = 20000;
+    const STEP = 1;
     var data = "";
     var isReading = true;
     var hasError = false;
@@ -76,7 +76,7 @@ async function readFile(
   readCallback = () => {},
   errorCallback = () => {},
   endCallback = () => {}
-) { 
+) {
   var filesize = await getFileSize(source);
   // Use fs.createReadStream() method
   // to read the file
@@ -85,11 +85,14 @@ async function readFile(
     start: position,
     highWaterMark: step,
   });
+  var inter = setInterval(() => {
+    let porcentage = ((position / filesize) * 100).toFixed(2);
+    process.stdout.write(source + " copy progress " + porcentage + "%\r"); // run once with this and later with this line commented
+  }, 100);
   // Read and disply the file data on console
   reader.on("data", function (chunk) {
     position += chunk.length;
-    let porcentage = ((position / filesize) * 100).toFixed(2);
-    console.log(source, " copy progress ", porcentage + "%"); // run once with this and later with this line commented
+
     // console.log('data&&',chunk.length,chunk)
     readCallback(chunk, position);
   });
@@ -102,6 +105,7 @@ async function readFile(
     errorCallback(error);
   });
   reader.on("end", async function () {
+    clearInterval(inter);
     await Promise.resolve(endCallback());
   });
 }
